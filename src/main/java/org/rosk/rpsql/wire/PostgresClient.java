@@ -1,11 +1,11 @@
-package org.rosk.rpsql.client;
+package org.rosk.rpsql.wire;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import org.rosk.rpsql.client.reader.MessageReader;
-import org.rosk.rpsql.client.writer.MessageWriter;
+import org.rosk.rpsql.wire.reader.MessageReader;
+import org.rosk.rpsql.wire.writer.MessageWriter;
 import org.rosk.rpsql.domain.model.frontend.StartupMessage;
 
 /**
@@ -25,7 +25,8 @@ public class PostgresClient {
     var client = new PostgresClient(socket.getInputStream(), socket.getOutputStream());
 
     client.writer.write(new StartupMessage(user, database));
-    client.reader.read();
+    var response = client.reader.read();
+    System.out.println(response);
 
     return client;
   }

@@ -1,7 +1,7 @@
 package org.rosk;
 
 import java.io.IOException;
-import org.rosk.rpsql.client.PostgresClient;
+import org.rosk.rpsql.wire.PostgresClient;
 
 public class Main {
 

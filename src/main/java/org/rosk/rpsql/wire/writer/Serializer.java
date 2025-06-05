@@ -1,4 +1,4 @@
-package org.rosk.rpsql.client.writer;
+package org.rosk.rpsql.wire.writer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

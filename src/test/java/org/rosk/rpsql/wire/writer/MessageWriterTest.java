@@ -1,11 +1,10 @@
-package org.rosk.rpsql.client.writer;
+package org.rosk.rpsql.wire.writer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.rosk.rpsql.domain.model.frontend.StartupMessage;
-
 
 class MessageWriterTest {
 
