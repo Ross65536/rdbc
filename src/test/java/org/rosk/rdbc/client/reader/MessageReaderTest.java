@@ -1,4 +1,4 @@
-package org.rosk.rdbc.wire.reader;
+package org.rosk.rdbc.client.reader;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

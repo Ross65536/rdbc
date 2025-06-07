@@ -1,4 +1,4 @@
-package org.rosk.rdbc.wire.writer;
+package org.rosk.rdbc.client.writer;
 
 import java.io.IOException;
 import java.io.OutputStream;
