@@ -2,7 +2,7 @@ package org.rosk.rdbc.domain.model.backend;
 
 import java.util.Map;
 
-public record ErrorResponseMessage(Map<Field, String> fields) implements BackendMessage {
+public record ErrorResponse(Map<Field, String> fields) implements BackendMessage {
 
   public enum Field {
     SEVERITY_LOCALIZED,

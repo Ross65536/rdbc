@@ -1,4 +1,4 @@
-package org.rosk.rdbc.client;
+package org.rosk.rdbc.domain.model.exception;
 
 public class AuthenticationError extends RuntimeException {
 

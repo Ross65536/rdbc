@@ -11,12 +11,12 @@ import org.rosk.rdbc.domain.model.backend.BackendKeyData;
 import org.rosk.rdbc.domain.model.backend.ParameterStatus;
 import org.rosk.rdbc.domain.model.backend.AuthenticationMessage;
 import org.rosk.rdbc.domain.model.backend.AuthenticationOk;
-import org.rosk.rdbc.domain.model.backend.AuthenticationSASLContinueMessage;
+import org.rosk.rdbc.domain.model.backend.AuthenticationSASLContinue;
 import org.rosk.rdbc.domain.model.backend.AuthenticationSASLFinal;
 import org.rosk.rdbc.domain.model.backend.BackendMessage;
-import org.rosk.rdbc.domain.model.backend.ErrorResponseMessage;
-import org.rosk.rdbc.domain.model.backend.ErrorResponseMessage.Field;
-import org.rosk.rdbc.domain.model.backend.AuthenticationSASLMessage;
+import org.rosk.rdbc.domain.model.backend.ErrorResponse;
+import org.rosk.rdbc.domain.model.backend.ErrorResponse.Field;
+import org.rosk.rdbc.domain.model.backend.AuthenticationSASL;
 import org.rosk.rdbc.domain.model.backend.ReadyForQuery;
 import org.rosk.rdbc.domain.model.backend.ReadyForQuery.TransactionStatus;
 
@@ -44,7 +44,7 @@ public class Deserializer {
     return new ParameterStatus(parameter, value);
   }
 
-  private static Map<Character, ErrorResponseMessage.Field> ERROR_FIELD_TYPE_CODES =
+  private static Map<Character, ErrorResponse.Field> ERROR_FIELD_TYPE_CODES =
       Map.ofEntries(
           entry('S', Field.SEVERITY_LOCALIZED),
           entry('V', Field.SEVERITY_NON_LOCALIZED),
@@ -66,7 +66,7 @@ public class Deserializer {
           entry('R', Field.ROUTINE)
       );
 
-  private static ErrorResponseMessage deserializeError(byte[] contents) throws IOException {
+  private static ErrorResponse deserializeError(byte[] contents) throws IOException {
     var bis = new ByteArrayInputStream(contents);
     var in = new MessageTypeInputStream(bis);
 
@@ -83,7 +83,7 @@ public class Deserializer {
       fields.put(field, value);
     }
 
-    return new ErrorResponseMessage(fields);
+    return new ErrorResponse(fields);
   }
 
 
@@ -102,8 +102,8 @@ public class Deserializer {
 
     return switch (subtype) {
       case AUTHENTICATION_OK_AUTH_TYPE -> new AuthenticationOk();
-      case SASL_AUTH_TYPE -> new AuthenticationSASLMessage(in.readCStringList());
-      case SASL_CONTINUE_AUTH_TYPE -> new AuthenticationSASLContinueMessage(in.readAllAsString());
+      case SASL_AUTH_TYPE -> new AuthenticationSASL(in.readCStringList());
+      case SASL_CONTINUE_AUTH_TYPE -> new AuthenticationSASLContinue(in.readAllAsString());
       case SASL_FINAL_AUTH_TYPE -> new AuthenticationSASLFinal(in.readAllAsString());
       default -> throw new UnsupportedProtocolFeatureException(
           "Cannot deserialize authentication message subtype: " + subtype);

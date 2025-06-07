@@ -1,18 +1,15 @@
 package org.rosk.rdbc.client;
 
 import com.ongres.scram.client.ScramClient;
-import com.ongres.scram.common.exception.ScramInvalidServerSignatureException;
-import com.ongres.scram.common.exception.ScramParseException;
-import com.ongres.scram.common.exception.ScramServerErrorException;
 import java.io.IOException;
 import java.net.Socket;
 import org.rosk.rdbc.client.PostgresConfiguration.User;
 import org.rosk.rdbc.client.reader.MessageReader;
 import org.rosk.rdbc.client.writer.MessageWriter;
 import org.rosk.rdbc.domain.model.backend.AuthenticationOk;
-import org.rosk.rdbc.domain.model.backend.AuthenticationSASLContinueMessage;
+import org.rosk.rdbc.domain.model.backend.AuthenticationSASLContinue;
 import org.rosk.rdbc.domain.model.backend.AuthenticationSASLFinal;
-import org.rosk.rdbc.domain.model.backend.AuthenticationSASLMessage;
+import org.rosk.rdbc.domain.model.backend.AuthenticationSASL;
 import org.rosk.rdbc.domain.model.backend.BackendKeyData;
 import org.rosk.rdbc.domain.model.backend.ParameterStatus;
 import org.rosk.rdbc.domain.model.backend.ReadyForQuery;
@@ -30,7 +27,8 @@ public class PostgresClient {
   private final MessageWriter writer;
   private final MessageReader reader;
 
-  public PostgresClient(PostgresConfiguration configuration, MessageWriter writer, MessageReader reader) {
+  public PostgresClient(PostgresConfiguration configuration, MessageWriter writer,
+      MessageReader reader) {
     this.configuration = configuration;
     this.writer = writer;
     this.reader = reader;
@@ -38,56 +36,25 @@ public class PostgresClient {
 
   private void authenticate() throws IOException {
     writer.write(new StartupMessage(configuration.user().user(), configuration.database()));
-    var response = reader.read();
-
-    if (response instanceof AuthenticationSASLMessage authMessage) {
-      saslAuthenticate(authMessage);
-    } else {
-      throw new UnexpectedServerResponseException(response);
-    }
+    var response = read(AuthenticationSASL.class);
+    saslAuthenticate(response);
   }
 
-  private void saslAuthenticate(AuthenticationSASLMessage message)
+  private void saslAuthenticate(AuthenticationSASL message)
       throws IOException {
     ScramClient scramClient = scramClient(configuration.user(), message);
 
-    var initialRequest = new SASLInitialResponse(scramClient.getScramMechanism().getName(), scramClient.clientFirstMessage());
-    writer.write(initialRequest);
+    writer.write(SASLInitialResponse.build(scramClient));
 
-    var initialResponse = reader.read();
+    read(AuthenticationSASLContinue.class)
+        .validate(scramClient);
 
-    if (!(initialResponse instanceof AuthenticationSASLContinueMessage(String saslData))) {
-      throw new UnexpectedServerResponseException(initialResponse);
-    }
+    writer.write(new SASLResponse(scramClient.clientFinalMessage()));
 
-    try {
-      scramClient.serverFirstMessage(saslData);
-    } catch (ScramParseException e) {
-      throw new AuthenticationError("Failed to parse server first response", e);
-    }
+    read(AuthenticationSASLFinal.class)
+        .validate(scramClient);
 
-    var finalRequest = new SASLResponse(scramClient.clientFinalMessage());
-    writer.write(finalRequest);
-
-    var finalResponse = reader.read();
-    if (!(finalResponse instanceof AuthenticationSASLFinal(String finalSaslMessage))) {
-      throw new UnexpectedServerResponseException(finalResponse);
-    }
-
-    try {
-      scramClient.serverFinalMessage(finalSaslMessage);
-    } catch (ScramParseException e) {
-      throw new AuthenticationError("Failed to parse server final response", e);
-    } catch (ScramServerErrorException e) {
-      throw new AuthenticationError("Failed to parse server final response", e);
-    } catch (ScramInvalidServerSignatureException e) {
-      throw new AuthenticationError("Failed to parse server final response", e);
-    }
-
-    var okResponse = reader.read();
-    if (!(okResponse instanceof AuthenticationOk)) {
-      throw new UnexpectedServerResponseException(okResponse);
-    }
+    read(AuthenticationOk.class);
   }
 
   private void waitUntilReady() throws IOException {
@@ -99,7 +66,8 @@ public class PostgresClient {
           // TODO: implement cancellation request from operator
         }
         case ReadyForQuery ready -> {
-          System.out.println("Server is ready for queries with transaction status: " + ready.status());
+          System.out.println(
+              "Server is ready for queries with transaction status: " + ready.status());
           return;
         }
         default -> throw new UnexpectedServerResponseException(message);
@@ -107,7 +75,16 @@ public class PostgresClient {
     }
   }
 
-  private static ScramClient scramClient(User user, AuthenticationSASLMessage message) {
+  private <T> T read(Class<T> clazz) throws IOException {
+    var message = reader.read();
+    if (message.getClass().isAssignableFrom(clazz)) {
+      return (T) message;
+    }
+
+    throw new UnexpectedServerResponseException(message);
+  }
+
+  private static ScramClient scramClient(User user, AuthenticationSASL message) {
     return ScramClient.builder()
         .advertisedMechanisms(message.mechanisms())
         .username(user.user())

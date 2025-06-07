@@ -3,8 +3,8 @@ package org.rosk.rdbc.domain.model.backend;
 import java.util.List;
 import org.rosk.rdbc.client.UnsupportedProtocolFeatureException;
 
-public record AuthenticationSASLMessage(List<String> mechanisms) implements AuthenticationMessage {
-  public AuthenticationSASLMessage {
+public record AuthenticationSASL(List<String> mechanisms) implements AuthenticationMessage {
+  public AuthenticationSASL {
     if (mechanisms.isEmpty()) {
       throw new UnsupportedProtocolFeatureException("Must have at least one SASL mechanism");
     }
