@@ -11,7 +11,11 @@ public class Main {
     var user = new PostgresConfiguration.User("user", "user");
     var configuration = new PostgresConfiguration(domain, user, "sample");
     try {
-      PostgresClient.connect(configuration);
+      var client = PostgresClient.connect(configuration);
+      client.execute("CREATE TABLE IF NOT EXISTS sample(name TEXT)");
+      client.execute("TRUNCATE TABLE sample");
+      client.execute("INSERT INTO sample VALUES ('abc'), ('def')");
+      client.execute("SELECT * FROM sample");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

@@ -5,8 +5,8 @@ import java.util.Map;
 public record ErrorResponse(Map<Field, String> fields) implements BackendMessage {
 
   public enum Field {
+    SEVERITY,
     SEVERITY_LOCALIZED,
-    SEVERITY_NON_LOCALIZED,
     SQLSTATE_CODE,
     MESSAGE,
     DETAIL,

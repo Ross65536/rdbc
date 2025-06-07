@@ -7,12 +7,17 @@ import org.rosk.rdbc.client.PostgresConfiguration.User;
 import org.rosk.rdbc.client.reader.MessageReader;
 import org.rosk.rdbc.client.writer.MessageWriter;
 import org.rosk.rdbc.domain.model.backend.AuthenticationOk;
+import org.rosk.rdbc.domain.model.backend.AuthenticationSASL;
 import org.rosk.rdbc.domain.model.backend.AuthenticationSASLContinue;
 import org.rosk.rdbc.domain.model.backend.AuthenticationSASLFinal;
-import org.rosk.rdbc.domain.model.backend.AuthenticationSASL;
 import org.rosk.rdbc.domain.model.backend.BackendKeyData;
+import org.rosk.rdbc.domain.model.backend.CommandComplete;
+import org.rosk.rdbc.domain.model.backend.DataRow;
+import org.rosk.rdbc.domain.model.backend.NoticeResponse;
 import org.rosk.rdbc.domain.model.backend.ParameterStatus;
 import org.rosk.rdbc.domain.model.backend.ReadyForQuery;
+import org.rosk.rdbc.domain.model.backend.RowDescription;
+import org.rosk.rdbc.domain.model.frontend.Query;
 import org.rosk.rdbc.domain.model.frontend.SASLInitialResponse;
 import org.rosk.rdbc.domain.model.frontend.SASLResponse;
 import org.rosk.rdbc.domain.model.frontend.StartupMessage;
@@ -32,6 +37,26 @@ public class PostgresClient {
     this.configuration = configuration;
     this.writer = writer;
     this.reader = reader;
+  }
+
+  public void execute(String query) throws IOException {
+    writer.write(new Query(query));
+
+    while (true) {
+      var message = reader.read();
+      switch (message) {
+        case RowDescription rows -> System.out.println("Row description: " + rows);
+        case DataRow rows -> System.out.println("Row data: " + rows);
+        case CommandComplete commandComplete -> System.out.println("Query has completed: " + commandComplete.commandTag());
+        case ReadyForQuery ready -> {
+          System.out.println(
+              "Server is ready for queries with transaction status: " + ready.status());
+          return;
+        }
+        case NoticeResponse notice -> System.out.println("Warning: " + notice);
+        default -> throw new UnexpectedServerResponseException(message);
+      }
+    }
   }
 
   private void authenticate() throws IOException {
@@ -92,7 +117,7 @@ public class PostgresClient {
         .build();
   }
 
-  public static void connect(PostgresConfiguration configuration) throws IOException {
+  public static PostgresClient connect(PostgresConfiguration configuration) throws IOException {
     var socket = new Socket(configuration.domain().host(), configuration.domain().port());
 
     var writer = new MessageWriter(socket.getOutputStream());
@@ -100,6 +125,8 @@ public class PostgresClient {
     var client = new PostgresClient(configuration, writer, reader);
     client.authenticate();
     client.waitUntilReady();
+
+    return client;
   }
 }
 

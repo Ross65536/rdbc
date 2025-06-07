@@ -2,6 +2,7 @@ package org.rosk.rdbc.client.writer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import org.rosk.rdbc.domain.model.frontend.Query;
 import org.rosk.rdbc.domain.model.frontend.SASLInitialResponse;
 import org.rosk.rdbc.domain.model.frontend.SASLResponse;
 import org.rosk.rdbc.domain.model.frontend.StartupMessage;
@@ -56,4 +57,14 @@ class Serializer {
 
   private static final byte PARAMETERS_TERMINATOR = 0x0;
   private static final int PROTOCOL_NUMBER = 0x30000; // v3
+
+  public static FrontendData serialize(Query message) throws IOException {
+    var bos = new ByteArrayOutputStream();
+    var out = new MessageTypesOutputStream(bos);
+
+    out.write(message.sql());
+
+    var contents = bos.toByteArray();
+    return new FrontendData('Q', contents);
+  }
 }

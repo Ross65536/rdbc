@@ -4,10 +4,16 @@ import static java.util.Map.entry;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.rosk.rdbc.client.UnsupportedProtocolFeatureException;
 import org.rosk.rdbc.domain.model.backend.BackendKeyData;
+import org.rosk.rdbc.domain.model.backend.CommandComplete;
+import org.rosk.rdbc.domain.model.backend.DataRow;
+import org.rosk.rdbc.domain.model.backend.NoticeResponse;
 import org.rosk.rdbc.domain.model.backend.ParameterStatus;
 import org.rosk.rdbc.domain.model.backend.AuthenticationMessage;
 import org.rosk.rdbc.domain.model.backend.AuthenticationOk;
@@ -19,19 +25,70 @@ import org.rosk.rdbc.domain.model.backend.ErrorResponse.Field;
 import org.rosk.rdbc.domain.model.backend.AuthenticationSASL;
 import org.rosk.rdbc.domain.model.backend.ReadyForQuery;
 import org.rosk.rdbc.domain.model.backend.ReadyForQuery.TransactionStatus;
+import org.rosk.rdbc.domain.model.backend.RowDescription;
 
 public class Deserializer {
 
   static BackendMessage deserialize(BackendData data) throws IOException {
     return switch (data.identifier()) {
       case 'R' -> deserializeAuthenticationMessage(data.contents());
-      case 'E' -> deserializeError(data.contents());
+      case 'E' -> deserializeErrorResponse(data.contents());
+      case 'N' -> deserializeNoticeResponse(data.contents());
       case 'S' -> deserializeParameter(data.contents());
       case 'K' -> deserializeBackendKeyData(data.contents());
       case 'Z' -> desrializeReadyForQuery(data.contents());
+      case 'T' -> deserializeRowDescription(data.contents());
+      case 'D' -> deserializeDataRow(data.contents());
+      case 'C' -> deserializeCommandComplete(data.contents());
       default -> throw new UnsupportedProtocolFeatureException(
           "Cannot deserialize message with identifier: " + data.identifier());
     };
+  }
+
+  private static CommandComplete deserializeCommandComplete(byte[] contents) throws IOException {
+    var bis = new ByteArrayInputStream(contents);
+    var in = new MessageTypeInputStream(bis);
+
+    String commandTag = in.readCString();
+
+    return new CommandComplete(commandTag);
+  }
+
+  private static RowDescription deserializeRowDescription(byte[] contents) throws IOException {
+    var bis = new ByteArrayInputStream(contents);
+    var in = new MessageTypeInputStream(bis);
+
+    short numFields = in.readNetworkOrderInt16();
+    Map<String, RowDescription.Field> fields = new HashMap<>(numFields);
+    for (int i = 0; i < numFields; i++) {
+      String fieldName = in.readCString();
+      int tableOid = in.readNetworkOrderInt32();
+      short columnAttributeNumber = in.readNetworkOrderInt16();
+      int dataTypeOid = in.readNetworkOrderInt32();
+      short dataTypeSize = in.readNetworkOrderInt16();
+      int typeModifier = in.readNetworkOrderInt32();
+      short formatCode = in.readNetworkOrderInt16();
+
+      var fieldMetadata = new RowDescription.Field(tableOid, columnAttributeNumber, dataTypeOid, dataTypeSize, typeModifier, formatCode);
+      fields.put(fieldName, fieldMetadata);
+    }
+
+    return new RowDescription(fields);
+  }
+
+  private static DataRow deserializeDataRow(byte[] contents) throws IOException {
+    var bis = new ByteArrayInputStream(contents);
+    var in = new MessageTypeInputStream(bis);
+
+    short numFields = in.readNetworkOrderInt16();
+    List<String> rows = new ArrayList<>(numFields);
+    for (int i = 0; i < numFields; i++) {
+      int size = in.readNetworkOrderInt32();
+      String value = in.readString(size);
+      rows.add(value);
+    }
+
+    return new DataRow(rows);
   }
 
   private static ParameterStatus deserializeParameter(byte[] contents) throws IOException {
@@ -47,7 +104,7 @@ public class Deserializer {
   private static Map<Character, ErrorResponse.Field> ERROR_FIELD_TYPE_CODES =
       Map.ofEntries(
           entry('S', Field.SEVERITY_LOCALIZED),
-          entry('V', Field.SEVERITY_NON_LOCALIZED),
+          entry('V', Field.SEVERITY),
           entry('C', Field.SQLSTATE_CODE),
           entry('M', Field.MESSAGE),
           entry('D', Field.DETAIL),
@@ -66,10 +123,26 @@ public class Deserializer {
           entry('R', Field.ROUTINE)
       );
 
-  private static ErrorResponse deserializeError(byte[] contents) throws IOException {
+  private static ErrorResponse deserializeErrorResponse(byte[] contents) throws IOException {
     var bis = new ByteArrayInputStream(contents);
     var in = new MessageTypeInputStream(bis);
 
+    Map<Field, String> fields = deserializeLogFields(in);
+
+    return new ErrorResponse(fields);
+  }
+
+  private static NoticeResponse deserializeNoticeResponse(byte[] contents) throws IOException {
+    var bis = new ByteArrayInputStream(contents);
+    var in = new MessageTypeInputStream(bis);
+
+    Map<Field, String> fields = deserializeLogFields(in);
+
+    return new NoticeResponse(fields);
+  }
+
+  private static Map<Field, String> deserializeLogFields(MessageTypeInputStream in)
+      throws IOException {
     Map<Field, String> fields = new EnumMap<>(Field.class);
     for (char code = in.readCharacter(); code != ERROR_FIELDS_TERMINATOR;
         code = in.readCharacter()) {
@@ -82,8 +155,7 @@ public class Deserializer {
 
       fields.put(field, value);
     }
-
-    return new ErrorResponse(fields);
+    return fields;
   }
 
 

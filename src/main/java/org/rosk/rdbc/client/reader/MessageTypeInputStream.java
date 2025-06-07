@@ -29,6 +29,11 @@ public class MessageTypeInputStream extends FilterInputStream {
     return dis.readInt();
   }
 
+  short readNetworkOrderInt16() throws IOException {
+    var dis = new DataInputStream(in);
+    return dis.readShort();
+  }
+
   List<String> readCStringList() throws IOException {
     var result = new ArrayList<String>();
 
@@ -67,4 +72,9 @@ public class MessageTypeInputStream extends FilterInputStream {
   private static final byte C_STRING_TERMINATOR = 0x0;
   private static final int MAX_C_STRING_SIZE = 64 * 1024;
   private static final int MAX_LIST_SIZE = 256;
+
+  public String readString(int numBytes) throws IOException {
+    byte[] binary = in.readNBytes(numBytes);
+    return new String(binary, StandardCharsets.US_ASCII);
+  }
 }
