@@ -1,8 +1,8 @@
-package org.rosk.rpsql.wire.writer;
+package org.rosk.rdbc.wire.writer;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import org.rosk.rpsql.domain.model.frontend.StartupMessage;
+import org.rosk.rdbc.domain.model.frontend.StartupMessage;
 
 public class MessageWriter {
   private final MessageTypesOutputStream out;

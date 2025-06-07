@@ -1,4 +1,4 @@
-package org.rosk.rpsql.domain.model.frontend;
+package org.rosk.rdbc.domain.model.frontend;
 
 import java.util.Objects;
 

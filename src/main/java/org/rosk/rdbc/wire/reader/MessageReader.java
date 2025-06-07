@@ -1,8 +1,8 @@
-package org.rosk.rpsql.wire.reader;
+package org.rosk.rdbc.wire.reader;
 
 import java.io.IOException;
 import java.io.InputStream;
-import org.rosk.rpsql.domain.model.backend.BackendMessage;
+import org.rosk.rdbc.domain.model.backend.BackendMessage;
 
 public class MessageReader {
 

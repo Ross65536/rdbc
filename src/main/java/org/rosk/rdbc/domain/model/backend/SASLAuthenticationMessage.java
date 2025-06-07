@@ -1,4 +1,4 @@
-package org.rosk.rpsql.domain.model.backend;
+package org.rosk.rdbc.domain.model.backend;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package org.rosk.rpsql.wire.reader;
+package org.rosk.rdbc.wire.reader;
 
 public record BackendData(char identifier, int length, byte[] contents) {
 }

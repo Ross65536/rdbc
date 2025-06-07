@@ -1,4 +1,4 @@
-package org.rosk.rpsql.wire.writer;
+package org.rosk.rdbc.wire.writer;
 
 import java.io.DataOutputStream;
 import java.io.FilterOutputStream;

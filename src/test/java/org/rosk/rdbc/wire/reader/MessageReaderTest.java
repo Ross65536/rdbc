@@ -1,11 +1,11 @@
-package org.rosk.rpsql.wire.reader;
+package org.rosk.rdbc.wire.reader;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.rosk.rpsql.domain.model.backend.SASLAuthenticationMessage;
+import org.rosk.rdbc.domain.model.backend.SASLAuthenticationMessage;
 
 class MessageReaderTest {
 

@@ -1,4 +1,4 @@
-package org.rosk.rpsql.wire.writer;
+package org.rosk.rdbc.wire.writer;
 
 record FrontendData(Character identifier, byte[] contents) {
 

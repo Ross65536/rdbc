@@ -1,10 +1,10 @@
-package org.rosk.rpsql.wire.reader;
+package org.rosk.rdbc.wire.reader;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import org.rosk.rpsql.domain.model.backend.AuthenticationMessage;
-import org.rosk.rpsql.domain.model.backend.BackendMessage;
-import org.rosk.rpsql.domain.model.backend.SASLAuthenticationMessage;
+import org.rosk.rdbc.domain.model.backend.AuthenticationMessage;
+import org.rosk.rdbc.domain.model.backend.BackendMessage;
+import org.rosk.rdbc.domain.model.backend.SASLAuthenticationMessage;
 
 public class Deserializer {
 

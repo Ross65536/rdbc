@@ -1,12 +1,12 @@
-package org.rosk.rpsql.wire;
+package org.rosk.rdbc.wire;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import org.rosk.rpsql.wire.reader.MessageReader;
-import org.rosk.rpsql.wire.writer.MessageWriter;
-import org.rosk.rpsql.domain.model.frontend.StartupMessage;
+import org.rosk.rdbc.wire.reader.MessageReader;
+import org.rosk.rdbc.wire.writer.MessageWriter;
+import org.rosk.rdbc.domain.model.frontend.StartupMessage;
 
 /**
  * Implements the Postgres message protocol: https://www.postgresql.org/docs/current/protocol-flow.html

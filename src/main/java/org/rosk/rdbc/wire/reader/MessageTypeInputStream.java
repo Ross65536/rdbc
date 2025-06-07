@@ -1,4 +1,4 @@
-package org.rosk.rpsql.wire.reader;
+package org.rosk.rdbc.wire.reader;
 
 import java.io.DataInputStream;
 import java.io.FilterInputStream;

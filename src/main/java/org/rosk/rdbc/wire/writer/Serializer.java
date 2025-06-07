@@ -1,8 +1,8 @@
-package org.rosk.rpsql.wire.writer;
+package org.rosk.rdbc.wire.writer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.rosk.rpsql.domain.model.frontend.StartupMessage;
+import org.rosk.rdbc.domain.model.frontend.StartupMessage;
 
 class Serializer {
 
