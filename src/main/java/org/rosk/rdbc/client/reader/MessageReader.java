@@ -14,7 +14,9 @@ public class MessageReader {
 
   public BackendMessage read() throws IOException {
     var data = readData();
-    return Deserializer.deserialize(data);
+    var message = Deserializer.deserialize(data);
+    System.out.println("Server message: " + message);
+    return message;
   }
 
   private BackendData readData() throws IOException {

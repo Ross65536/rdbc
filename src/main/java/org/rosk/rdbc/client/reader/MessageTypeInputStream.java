@@ -4,6 +4,8 @@ import java.io.DataInputStream;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +42,11 @@ public class MessageTypeInputStream extends FilterInputStream {
     }
 
     throw new IllegalStateException("List of C-Strings is too large: " + MAX_LIST_SIZE);
+  }
+
+  String readAllAsString() throws IOException {
+    byte[] binary = in.readAllBytes();
+    return new String(binary, StandardCharsets.US_ASCII);
   }
 
   String readCString() throws IOException {

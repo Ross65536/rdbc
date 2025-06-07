@@ -7,9 +7,11 @@ import org.rosk.rdbc.client.PostgresConfiguration;
 public class Main {
 
   public static void main(String[] args) {
-    var configuration = new PostgresConfiguration(null, 5432, "user", "sample");
+    var domain = new PostgresConfiguration.Domain(null, 5432);
+    var user = new PostgresConfiguration.User("user", "user");
+    var configuration = new PostgresConfiguration(domain, user, "sample");
     try {
-      PostgresClient.connect(configuration, "user");
+      PostgresClient.connect(configuration);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.rosk.rdbc.domain.model.backend.SASLAuthenticationMessage;
+import org.rosk.rdbc.domain.model.backend.AuthenticationSASLMessage;
 
 class MessageReaderTest {
 
@@ -26,7 +26,7 @@ class MessageReaderTest {
     var in = new ByteArrayInputStream(input);
     var reader = new MessageReader(in);
     var actual = reader.read();
-    var expected = new SASLAuthenticationMessage(List.of("SCRAM-SHA-256"));
+    var expected = new AuthenticationSASLMessage(List.of("SCRAM-SHA-256"));
 
     Assertions.assertEquals(expected, actual);
   }
