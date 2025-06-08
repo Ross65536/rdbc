@@ -1,7 +1,7 @@
 package org.rosk;
 
 import java.io.IOException;
-import org.rosk.rdbc.client.PostgresClient;
+import org.rosk.rdbc.Postgres;
 import org.rosk.rdbc.client.PostgresConfiguration;
 
 public class Main {
@@ -11,7 +11,7 @@ public class Main {
     var user = new PostgresConfiguration.User("user", "user");
     var configuration = new PostgresConfiguration(domain, user, "sample");
     try {
-      var client = PostgresClient.connect(configuration);
+      var client = Postgres.connect(configuration);
       client.execute("CREATE TABLE IF NOT EXISTS sample(name TEXT)");
       client.execute("TRUNCATE TABLE sample");
       client.execute("INSERT INTO sample VALUES ('abc'), ('def')");

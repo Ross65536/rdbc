@@ -2,25 +2,23 @@ package org.rosk.rdbc.client;
 
 import com.ongres.scram.client.ScramClient;
 import java.io.IOException;
-import java.net.Socket;
+import org.rosk.rdbc.exception.UnexpectedServerResponseException;
+import org.rosk.rdbc.message.backend.AuthenticationOk;
+import org.rosk.rdbc.message.backend.AuthenticationSASL;
+import org.rosk.rdbc.message.backend.AuthenticationSASLContinue;
+import org.rosk.rdbc.message.backend.AuthenticationSASLFinal;
+import org.rosk.rdbc.message.backend.BackendKeyData;
+import org.rosk.rdbc.message.backend.CommandComplete;
+import org.rosk.rdbc.message.backend.DataRow;
+import org.rosk.rdbc.message.backend.NoticeResponse;
+import org.rosk.rdbc.message.backend.ParameterStatus;
+import org.rosk.rdbc.message.backend.ReadyForQuery;
+import org.rosk.rdbc.message.backend.RowDescription;
+import org.rosk.rdbc.message.frontend.Query;
+import org.rosk.rdbc.message.frontend.SASLInitialResponse;
+import org.rosk.rdbc.message.frontend.SASLResponse;
+import org.rosk.rdbc.message.frontend.StartupMessage;
 import org.rosk.rdbc.client.PostgresConfiguration.User;
-import org.rosk.rdbc.client.reader.MessageReader;
-import org.rosk.rdbc.client.writer.MessageWriter;
-import org.rosk.rdbc.domain.model.backend.AuthenticationOk;
-import org.rosk.rdbc.domain.model.backend.AuthenticationSASL;
-import org.rosk.rdbc.domain.model.backend.AuthenticationSASLContinue;
-import org.rosk.rdbc.domain.model.backend.AuthenticationSASLFinal;
-import org.rosk.rdbc.domain.model.backend.BackendKeyData;
-import org.rosk.rdbc.domain.model.backend.CommandComplete;
-import org.rosk.rdbc.domain.model.backend.DataRow;
-import org.rosk.rdbc.domain.model.backend.NoticeResponse;
-import org.rosk.rdbc.domain.model.backend.ParameterStatus;
-import org.rosk.rdbc.domain.model.backend.ReadyForQuery;
-import org.rosk.rdbc.domain.model.backend.RowDescription;
-import org.rosk.rdbc.domain.model.frontend.Query;
-import org.rosk.rdbc.domain.model.frontend.SASLInitialResponse;
-import org.rosk.rdbc.domain.model.frontend.SASLResponse;
-import org.rosk.rdbc.domain.model.frontend.StartupMessage;
 
 /**
  * Implements the Postgres message protocol:
@@ -29,11 +27,11 @@ import org.rosk.rdbc.domain.model.frontend.StartupMessage;
 public class PostgresClient {
 
   private final PostgresConfiguration configuration;
-  private final MessageWriter writer;
-  private final MessageReader reader;
+  private final Writer writer;
+  private final Reader reader;
 
-  public PostgresClient(PostgresConfiguration configuration, MessageWriter writer,
-      MessageReader reader) {
+  public PostgresClient(PostgresConfiguration configuration, Writer writer,
+      Reader reader) {
     this.configuration = configuration;
     this.writer = writer;
     this.reader = reader;
@@ -59,10 +57,11 @@ public class PostgresClient {
     }
   }
 
-  private void authenticate() throws IOException {
+  public void authenticate() throws IOException {
     writer.write(new StartupMessage(configuration.user().user(), configuration.database()));
     var response = read(AuthenticationSASL.class);
     saslAuthenticate(response);
+    waitUntilReady();
   }
 
   private void saslAuthenticate(AuthenticationSASL message)
@@ -117,16 +116,6 @@ public class PostgresClient {
         .build();
   }
 
-  public static PostgresClient connect(PostgresConfiguration configuration) throws IOException {
-    var socket = new Socket(configuration.domain().host(), configuration.domain().port());
 
-    var writer = new MessageWriter(socket.getOutputStream());
-    var reader = new MessageReader(socket.getInputStream());
-    var client = new PostgresClient(configuration, writer, reader);
-    client.authenticate();
-    client.waitUntilReady();
-
-    return client;
-  }
 }
 
