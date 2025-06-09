@@ -10,3 +10,16 @@ Some conclusions:
 - SQL injection works if a client is using [Simple Query mode](https://www.postgresql.org/docs/current/protocol-flow.html#PROTOCOL-FLOW-SIMPLE-QUERY): multiple queries can be sent in a single string. This attack is bypassed by leveraging the postgres protocol (and not from any application code). 
 
 > WARNING: Don't use this in production.
+
+## Development
+
+Requirements:
+- [Maven](https://maven.apache.org/guides/getting-started/)
+- Java 21
+
+```sh
+# compile
+mvn compile
+# test
+mvn test
+```
