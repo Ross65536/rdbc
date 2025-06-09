@@ -13,7 +13,7 @@ import org.rosk.rdbc.client.PostgresConfiguration.User;
 import org.rosk.rdbc.message.backend.DataRow;
 import org.testcontainers.containers.PostgreSQLContainer;
 
-class PostgresClientIT {
+class PostgresClientTest {
 
   // avoid conflict with a postgres running locally on 5432 (e.g. from docker-compose)
   private final static int dbPort = new Random().nextInt(1000, 2000);
