@@ -26,8 +26,11 @@ import org.rosk.rdbc.message.backend.ParameterStatus;
 import org.rosk.rdbc.message.backend.ReadyForQuery;
 import org.rosk.rdbc.message.backend.ReadyForQuery.TransactionStatus;
 import org.rosk.rdbc.message.backend.RowDescription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Deserializer {
+  private static final Logger LOGGER = LoggerFactory.getLogger(Deserializer.class);
 
   static BackendMessage deserialize(BackendData data) throws IOException {
     return switch (data.identifier()) {
@@ -101,7 +104,7 @@ public class Deserializer {
     return new ParameterStatus(parameter, value);
   }
 
-  private static Map<Character, ErrorResponse.Field> ERROR_FIELD_TYPE_CODES =
+  private static final Map<Character, ErrorResponse.Field> ERROR_FIELD_TYPE_CODES =
       Map.ofEntries(
           entry('S', Field.SEVERITY_LOCALIZED),
           entry('V', Field.SEVERITY),
@@ -149,7 +152,7 @@ public class Deserializer {
       String value = in.readCString();
       Field field = ERROR_FIELD_TYPE_CODES.get(code);
       if (field == null) {
-        System.out.println("Unknown ERROR_RESPONSE field type code: " + code + ". Skipping.");
+        LOGGER.warn("Unknown ERROR_RESPONSE field type code: {}. Skipping.", code);
         continue;
       }
 
@@ -204,7 +207,7 @@ public class Deserializer {
       case 'T' -> TransactionStatus.TRANSACTION_BLOCK;
       case 'E' -> TransactionStatus.FAILED_TRANSACTION_BLOCK;
       default -> throw new UnsupportedProtocolFeatureException(
-          "Unknown transaction statuc indicator: " + code);
+          "Unknown transaction status indicator: " + code);
     };
 
     return new ReadyForQuery(status);

@@ -2,10 +2,13 @@ package org.rosk.rdbc.serialization.reader;
 
 import java.io.IOException;
 import java.io.InputStream;
-import org.rosk.rdbc.message.backend.BackendMessage;
 import org.rosk.rdbc.client.Reader;
+import org.rosk.rdbc.message.backend.BackendMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MessageReader implements Reader {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MessageReader.class);
 
   private final MessageTypeInputStream in;
 
@@ -16,7 +19,7 @@ public class MessageReader implements Reader {
   public BackendMessage read() throws IOException {
     var data = readData();
     var message = Deserializer.deserialize(data);
-    System.out.println("Server message: " + message);
+    LOGGER.trace("Server response: {}", message);
     return message;
   }
 

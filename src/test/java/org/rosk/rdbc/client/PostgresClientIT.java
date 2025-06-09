@@ -1,7 +1,6 @@
 package org.rosk.rdbc.client;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import org.junit.jupiter.api.AfterAll;

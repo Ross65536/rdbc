@@ -28,6 +28,18 @@
 
   <dependencies>
     <dependency>
+      <groupId>com.ongres.scram</groupId>
+      <artifactId>scram-client</artifactId>
+      <version>3.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.5.18</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
@@ -40,11 +52,6 @@
       <scope>test</scope>
     </dependency>
 
-    <dependency>
-      <groupId>com.ongres.scram</groupId>
-      <artifactId>scram-client</artifactId>
-      <version>3.1</version>
-    </dependency>
   </dependencies>
 
   <build>

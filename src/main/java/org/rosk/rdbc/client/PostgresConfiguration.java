@@ -9,4 +9,11 @@ public record PostgresConfiguration(Domain domain, User user, String database) {
     }
   }
   public record User(String user, String password) {}
+
+  @Override
+  public String toString() {
+    return String.format("%s@%s:%d/%s",
+        user.user, domain.host == null ? "localhost" : domain.host, domain.port, database
+    );
+  }
 }

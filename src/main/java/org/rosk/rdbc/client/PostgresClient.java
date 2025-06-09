@@ -4,6 +4,7 @@ import com.ongres.scram.client.ScramClient;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.rosk.rdbc.client.PostgresConfiguration.User;
 import org.rosk.rdbc.exception.UnexpectedServerResponseException;
 import org.rosk.rdbc.message.backend.AuthenticationOk;
 import org.rosk.rdbc.message.backend.AuthenticationSASL;
@@ -20,13 +21,15 @@ import org.rosk.rdbc.message.frontend.Query;
 import org.rosk.rdbc.message.frontend.SASLInitialResponse;
 import org.rosk.rdbc.message.frontend.SASLResponse;
 import org.rosk.rdbc.message.frontend.StartupMessage;
-import org.rosk.rdbc.client.PostgresConfiguration.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implements the Postgres message protocol:
  * https://www.postgresql.org/docs/current/protocol-flow.html
  */
 public class PostgresClient {
+  private static final Logger LOGGER = LoggerFactory.getLogger(PostgresClient.class);
 
   private final PostgresConfiguration configuration;
   private final Writer writer;
@@ -55,17 +58,17 @@ public class PostgresClient {
           currentResult.append(data);
         }
         case CommandComplete(String commandTag) -> {
-          System.out.println("SQL Command '" + commandTag + "' has completed");
+          LOGGER.debug("SQL Command '{}' has completed", commandTag);
           currentResult.setCommand(commandTag);
           results.add(currentResult.build());
           currentResult = new QueryResult.Builder();
         }
         case ReadyForQuery ready -> {
-          System.out.println(
-              "Server is ready for queries with transaction status: " + ready.status());
+          LOGGER.debug("Server is ready for new queries with transaction status: {}",
+              ready.status());
           return results;
         }
-        case NoticeResponse notice -> System.out.println("Warning: " + notice);
+        case NoticeResponse notice -> LOGGER.warn("Server produced a notice: {}", notice);
         default -> throw new UnexpectedServerResponseException(message);
       }
     }
@@ -93,19 +96,20 @@ public class PostgresClient {
         .validate(scramClient);
 
     read(AuthenticationOk.class);
+    LOGGER.debug("Client is authenticated with the server.");
   }
 
   private void waitUntilReady() throws IOException {
     while (true) {
       var message = reader.read();
       switch (message) {
-        case ParameterStatus status -> System.out.println(status);
+        case ParameterStatus status -> LOGGER.debug("Server parameter status: {}", status);
         case BackendKeyData keyData -> {
           // TODO: implement cancellation request from operator
         }
         case ReadyForQuery ready -> {
-          System.out.println(
-              "Server is ready for queries with transaction status: " + ready.status());
+          LOGGER.debug("Server is ready to accept queries, with transaction status: {}",
+              ready.status());
           return;
         }
         default -> throw new UnexpectedServerResponseException(message);
