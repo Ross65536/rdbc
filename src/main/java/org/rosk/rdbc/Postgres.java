@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Postgres {
+  private Postgres() {}
+
   private static final Logger LOGGER = LoggerFactory.getLogger(Postgres.class);
 
   public static PostgresClient connect(PostgresConfiguration configuration) throws IOException {

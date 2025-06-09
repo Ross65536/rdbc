@@ -8,6 +8,7 @@ import org.rosk.rdbc.message.frontend.SASLResponse;
 import org.rosk.rdbc.message.frontend.StartupMessage;
 
 class Serializer {
+  private Serializer() {}
 
   static FrontendData serialize(StartupMessage message) throws IOException {
     var bos = new ByteArrayOutputStream();
