@@ -16,6 +16,7 @@ import org.rosk.rdbc.message.backend.DataRow;
 import org.rosk.rdbc.message.backend.NoticeResponse;
 import org.rosk.rdbc.message.backend.ParameterStatus;
 import org.rosk.rdbc.message.backend.ReadyForQuery;
+import org.rosk.rdbc.message.backend.ReadyForQuery.TransactionStatus;
 import org.rosk.rdbc.message.backend.RowDescription;
 import org.rosk.rdbc.message.frontend.Query;
 import org.rosk.rdbc.message.frontend.SASLInitialResponse;
@@ -51,21 +52,16 @@ public class PostgresClient {
     while (true) {
       var message = reader.read();
       switch (message) {
-        case RowDescription header -> {
-          currentResult.setHeader(header);
-        }
-        case DataRow data -> {
-          currentResult.append(data);
-        }
+        case RowDescription header -> currentResult.setHeader(header);
+        case DataRow data -> currentResult.append(data);
         case CommandComplete(String commandTag) -> {
           LOGGER.debug("SQL Command '{}' has completed", commandTag);
           currentResult.setCommand(commandTag);
           results.add(currentResult.build());
           currentResult = new QueryResult.Builder();
         }
-        case ReadyForQuery ready -> {
-          LOGGER.debug("Server is ready for new queries with transaction status: {}",
-              ready.status());
+        case ReadyForQuery(TransactionStatus status) -> {
+          LOGGER.debug("Server is ready for new queries with transaction status: {}", status);
           return results;
         }
         case NoticeResponse notice -> LOGGER.warn("Server produced a notice: {}", notice);
@@ -107,9 +103,8 @@ public class PostgresClient {
         case BackendKeyData keyData -> {
           // TODO: implement cancellation request from operator
         }
-        case ReadyForQuery ready -> {
-          LOGGER.debug("Server is ready to accept queries, with transaction status: {}",
-              ready.status());
+        case ReadyForQuery(TransactionStatus status) -> {
+          LOGGER.debug("Server is ready to accept queries, with transaction status: {}", status);
           return;
         }
         default -> throw new UnexpectedServerResponseException(message);

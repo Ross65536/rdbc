@@ -30,6 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Deserializer {
+  private Deserializer() {}
+
   private static final Logger LOGGER = LoggerFactory.getLogger(Deserializer.class);
 
   static BackendMessage deserialize(BackendData data) throws IOException {
@@ -62,7 +64,7 @@ public class Deserializer {
     var in = new MessageTypeInputStream(bis);
 
     short numFields = in.readNetworkOrderInt16();
-    Map<String, RowDescription.Field> fields = new HashMap<>(numFields);
+    Map<String, RowDescription.Field> fields = HashMap.newHashMap(numFields);
     for (int i = 0; i < numFields; i++) {
       String fieldName = in.readCString();
       int tableOid = in.readNetworkOrderInt32();

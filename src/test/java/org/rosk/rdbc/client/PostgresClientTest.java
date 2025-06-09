@@ -16,16 +16,16 @@ import org.testcontainers.containers.PostgreSQLContainer;
 class PostgresClientTest {
 
   // avoid conflict with a postgres running locally on 5432 (e.g. from docker-compose)
-  private final static int dbPort = new Random().nextInt(1000, 2000);
+  private static final int DB_PORT = new Random().nextInt(1000, 2000);
 
-  private static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
+  private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
       "postgres:17.5"
   );
 
 
   @BeforeAll
   static void beforeAll() {
-    postgres.setPortBindings(List.of(dbPort + ":5432"));
+    postgres.setPortBindings(List.of(DB_PORT + ":5432"));
     postgres.start();
   }
 
@@ -35,9 +35,8 @@ class PostgresClientTest {
   }
 
   @Test
-  void should_authenticate() throws IOException {
-    // should not throw exception
-    connectedClient();
+  void should_authenticate() {
+    Assertions.assertDoesNotThrow(this::connectedClient);
   }
 
   @Test
@@ -86,7 +85,7 @@ class PostgresClientTest {
 
   private PostgresClient connectedClient() throws IOException {
     var config = new PostgresConfiguration(
-        new Domain(postgres.getHost(), (short) dbPort),
+        new Domain(postgres.getHost(), (short) DB_PORT),
         new User(postgres.getUsername(), postgres.getPassword()),
         postgres.getDatabaseName()
     );
