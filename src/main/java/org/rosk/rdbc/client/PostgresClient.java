@@ -2,6 +2,8 @@ package org.rosk.rdbc.client;
 
 import com.ongres.scram.client.ScramClient;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import org.rosk.rdbc.exception.UnexpectedServerResponseException;
 import org.rosk.rdbc.message.backend.AuthenticationOk;
 import org.rosk.rdbc.message.backend.AuthenticationSASL;
@@ -37,19 +39,31 @@ public class PostgresClient {
     this.reader = reader;
   }
 
-  public void execute(String query) throws IOException {
+  public List<QueryResult> execute(String query) throws IOException {
     writer.write(new Query(query));
 
+    // TODO: handle correctly when query contains multiple commands
+    var results = new ArrayList<QueryResult>();
+    var currentResult = new QueryResult.Builder();
     while (true) {
       var message = reader.read();
       switch (message) {
-        case RowDescription rows -> System.out.println("Row description: " + rows);
-        case DataRow rows -> System.out.println("Row data: " + rows);
-        case CommandComplete commandComplete -> System.out.println("Query has completed: " + commandComplete.commandTag());
+        case RowDescription header -> {
+          currentResult.setHeader(header);
+        }
+        case DataRow data -> {
+          currentResult.append(data);
+        }
+        case CommandComplete(String commandTag) -> {
+          System.out.println("SQL Command '" + commandTag + "' has completed");
+          currentResult.setCommand(commandTag);
+          results.add(currentResult.build());
+          currentResult = new QueryResult.Builder();
+        }
         case ReadyForQuery ready -> {
           System.out.println(
               "Server is ready for queries with transaction status: " + ready.status());
-          return;
+          return results;
         }
         case NoticeResponse notice -> System.out.println("Warning: " + notice);
         default -> throw new UnexpectedServerResponseException(message);
@@ -115,7 +129,4 @@ public class PostgresClient {
         .password(user.password().toCharArray())
         .build();
   }
-
-
 }
-

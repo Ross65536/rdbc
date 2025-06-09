@@ -12,10 +12,14 @@ public class Main {
     var configuration = new PostgresConfiguration(domain, user, "sample");
     try {
       var client = Postgres.connect(configuration);
-      client.execute("CREATE TABLE IF NOT EXISTS sample(name TEXT)");
-      client.execute("TRUNCATE TABLE sample");
-      client.execute("INSERT INTO sample VALUES ('abc'), ('def')");
-      client.execute("SELECT * FROM sample");
+      client.execute("""
+              CREATE TABLE IF NOT EXISTS sample(name TEXT);
+              TRUNCATE TABLE sample;
+          """);
+      client.execute("""
+          INSERT INTO sample VALUES ('abc'), ('def');
+          SELECT * FROM sample;
+          """);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
